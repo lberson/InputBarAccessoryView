@@ -26,7 +26,7 @@
 //
 
 import UIKit
-
+import AVFoundation
 @MainActor
 open class AttachmentManager: NSObject, InputPlugin {
     
@@ -166,7 +166,22 @@ extension AttachmentManager: UICollectionViewDataSource, UICollectionViewDelegat
     final public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return attachments.count + (showAddAttachmentCell ? 1 : 0)
     }
-    
+   
+
+    func generateThumbnail(from url: URL) -> UIImage? {
+        let asset = AVAsset(url: url)
+        let assetImgGenerate = AVAssetImageGenerator(asset: asset)
+        assetImgGenerate.appliesPreferredTrackTransform = true
+        let time = CMTime(seconds: 1.0, preferredTimescale: 600) // 1 second in
+        do {
+            let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
+            return UIImage(cgImage: img)
+        } catch {
+            print("Error generating thumbnail: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
     final public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         if indexPath.row == attachments.count && showAddAttachmentCell {
@@ -181,6 +196,22 @@ extension AttachmentManager: UICollectionViewDataSource, UICollectionViewDelegat
             
             // Only images are supported by default
             switch attachment {
+            case .url(let URL):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageAttachmentCell.reuseIdentifier, for: indexPath) as? ImageAttachmentCell else {
+                    fatalError()
+                }
+                cell.attachment = attachment
+                cell.indexPath = indexPath
+                cell.manager = self
+              //  if let url = attachment.url, url.isFileURL {
+                    let thumbnail = generateThumbnail(from: URL)
+                    cell.imageView.image = thumbnail ?? UIImage(named: "placeholder")
+            //    }
+              
+          //      cell.imageView.image = image
+                cell.imageView.tintColor = tintColor
+                cell.deleteButton.backgroundColor = tintColor
+                return cell
             case .image(let image):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageAttachmentCell.reuseIdentifier, for: indexPath) as? ImageAttachmentCell else {
                     fatalError()
