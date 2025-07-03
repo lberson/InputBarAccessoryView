@@ -181,7 +181,10 @@ extension AttachmentManager: UICollectionViewDataSource, UICollectionViewDelegat
             return nil
         }
     }
-
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
     final public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         if indexPath.row == attachments.count && showAddAttachmentCell {
@@ -197,6 +200,7 @@ extension AttachmentManager: UICollectionViewDataSource, UICollectionViewDelegat
             // Only images are supported by default
             switch attachment {
             case .url(let URL):
+
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageAttachmentCell.reuseIdentifier, for: indexPath) as? ImageAttachmentCell else {
                     fatalError()
                 }
@@ -204,11 +208,17 @@ extension AttachmentManager: UICollectionViewDataSource, UICollectionViewDelegat
                 cell.indexPath = indexPath
                 cell.manager = self
               //  if let url = attachment.url, url.isFileURL {
+                let asset = AVAsset(url: URL)
+                if asset.tracks(withMediaType: .audio).count > 0 && asset.tracks(withMediaType: .video).isEmpty {
+                    // It's an audio-only file
+                }
+                if asset.tracks(withMediaType: .audio).count > 0 && asset.tracks(withMediaType: .video).isEmpty {
+                    cell.imageView.image = UIImage(systemName: "waveform") // Provide your own icon asset
+                } else {
+                    // It's a video, generate thumbnail
                     let thumbnail = generateThumbnail(from: URL)
                     cell.imageView.image = thumbnail ?? UIImage(named: "placeholder")
-            //    }
-              
-          //      cell.imageView.image = image
+                }
                 cell.imageView.tintColor = tintColor
                 cell.deleteButton.backgroundColor = tintColor
                 return cell
