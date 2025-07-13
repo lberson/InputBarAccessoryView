@@ -170,7 +170,18 @@ open class InputBarAccessoryView: UIView {
                 $0.inputBarAccessoryView?.didSelectSendButton()
         }
     }()
-
+    open var record: InputBarSendButton = {
+        return InputBarSendButton()
+            .configure {
+                $0.setSize(CGSize(width: 52, height: 36), animated: false)
+                $0.isEnabled = false
+                $0.title = "Record"
+                $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+            }
+            //.onTouchUpInside {
+               // $0.inputBarAccessoryView?.didSelectSendButton()
+       // }
+    }()
     /**
      The anchor contants used to add horizontal inset from the InputBarAccessoryView and the
      window. By default, an `inputAccessoryView` spans the entire width of the UIWindow. You
@@ -475,7 +486,10 @@ open class InputBarAccessoryView: UIView {
             top:    middleContentViewWrapper.topAnchor.constraint(equalTo: contentView.topAnchor, constant: middleContentViewPadding.top),
             bottom: middleContentViewWrapper.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: -middleContentViewPadding.bottom),
             left:   middleContentViewWrapper.leftAnchor.constraint(equalTo: leftStackView.rightAnchor, constant: middleContentViewPadding.left),
-            right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: rightStackView.leftAnchor, constant: -middleContentViewPadding.right)
+            right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -50),
+            width: middleContentViewWrapper.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -150)
+,
+            //right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: rightStackView.leftAnchor, constant: -middleContentViewPadding.right)
         )
 
         inputTextView.fillSuperview()
