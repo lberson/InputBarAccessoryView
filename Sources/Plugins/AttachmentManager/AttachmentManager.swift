@@ -81,7 +81,8 @@ open class AttachmentManager: NSObject, InputPlugin {
     // MARK: - InputPlugin
     
     open func reloadData() {
-        attachmentView.reloadData()
+        return
+       attachmentView.reloadData()
         delegate?.attachmentManager(self, didReloadTo: attachments)
         delegate?.attachmentManager(self, shouldBecomeVisible: attachments.count > 0 || isPersistent)
     }

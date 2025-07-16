@@ -26,7 +26,8 @@
 //
 
 import UIKit
-
+import MobileCoreServices
+import AVKit
 /// A powerful InputAccessoryView ideal for messaging applications
 open class InputBarAccessoryView: UIView {
 
@@ -170,18 +171,203 @@ open class InputBarAccessoryView: UIView {
                 $0.inputBarAccessoryView?.didSelectSendButton()
         }
     }()
-    open var record: InputBarSendButton = {
-        return InputBarSendButton()
-            .configure {
-                $0.setSize(CGSize(width: 52, height: 36), animated: false)
-                $0.isEnabled = false
-                $0.title = "Record"
-                $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
-            }
-            //.onTouchUpInside {
-               // $0.inputBarAccessoryView?.didSelectSendButton()
-       // }
+    // Inside your accessory view class
+    open lazy var record: InputBarRecordButton = {
+        let button = InputBarRecordButton()
+        button.setSize(CGSize(width: 52, height: 36), animated: false)
+        button.isEnabled = true
+     //   button.title = "Record"
+        button.image = UIImage(systemName:"mic.circle.fill")
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+        button.onPressBegan = { [weak self] in
+            self?.startRecording()
+        }
+        button.onPressEnded = { [weak self] in
+            self?.finishRecording(success:true)
+        }
+        return button
     }()
+
+    
+    var recordingSession: AVAudioSession!
+    var audioRecorder: AVAudioRecorder!
+    var recordState = "stoped"
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
+    func startRecording()
+    
+    {
+      
+
+        sendButton.isHidden = true
+      //  recordButton.isHidden = false
+        recordingSession = AVAudioSession.sharedInstance()
+
+       // self.view.addSubview(self.inputContainerView)
+        
+        
+         
+       
+        do {
+            try recordingSession.setCategory(.playAndRecord, mode: .default)
+            try recordingSession.setActive(true)
+            recordingSession.requestRecordPermission() { [unowned self] allowed in
+                DispatchQueue.main.async {
+                    if allowed {
+                        //self.inputContainerView.recordButton.isHidden = false
+                    } else {
+                        // failed to record!
+                    }
+                }
+            }
+        } catch {
+            // failed to record!
+        }
+        let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+        do {
+            try recordingSession.setCategory(.playAndRecord, mode: .default)
+            try recordingSession.setActive(true)
+            recordingSession.requestRecordPermission() { [unowned self] allowed in
+                DispatchQueue.main.async { [self] in
+                    if allowed {
+                        //self.inputContainerView.recordButton.isHidden = false
+                  //      if isAudioRecordingGranted
+                 //       {
+                            let session = AVAudioSession.sharedInstance()
+                            do
+                            {
+                               // try session.setCategory(.playAndRecord, mode: .default)
+                                try! session.setCategory(AVAudioSession.Category.playAndRecord, options:AVAudioSession.CategoryOptions.defaultToSpeaker)
+                                try session.setActive(true)
+                                let settings = [
+                                    AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                                    AVSampleRateKey: 44100,
+                                    AVNumberOfChannelsKey: 2,
+                                    AVEncoderAudioQualityKey:AVAudioQuality.high.rawValue
+                                ]
+                                self.audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+                           //     audioRecorder.delegate = self
+                                audioRecorder.isMeteringEnabled = true
+                                //audioRecorder.
+                                
+
+                                audioRecorder.prepareToRecord()
+                                audioRecorder.record()
+                                recordState = "record"
+                            }
+                            catch let error {
+                                recordState = "stopped"
+                                print("Error: record")
+                              //  print(msg_title: "Error", msg_desc: error.localizedDescription, action_title: "OK")
+                            }
+                        }
+                        else
+                        {
+                            recordState = "stopped"
+                            print("Error: record 2")
+                           // print(msg_title: "Error", msg_desc: "Don't have access to use your microphone.", action_title: "OK")
+                        }
+
+              //      } else {
+                        // failed to record!
+                //    }
+             }
+            }
+        } catch {
+            // failed to record!
+            finishRecording(success: false)
+        }
+    }
+    @objc
+       func finishRecording(success: Bool) {
+           if(recordState == "record"){
+               audioRecorder.stop()
+               recordState = "stopped"
+               let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+               if let audioURL = audioFilename as? NSURL {
+                   inputPlugins.forEach { _ = $0.handleInput(of: audioURL ) }
+                   audioRecorder = nil
+             
+                  //  if success {
+                        //self.groupsViewModel.item.id
+                    //   sendMessage(srcUrl: audioFilename)
+                   // recordButton.isHidden = true
+                  //  sendButton.isHidden = false
+                  //  self.refreshView()
+                 //   } else {
+                   //     inputContainerView.recordButton.setTitle("Rec", for: .normal)
+                        // recording failed :(
+                //    }
+                  // getRootViewController()?.dismiss(animated: true, completion: nil)
+                
+               }
+           }
+           inputAccessoryView?.isHidden = false
+
+           self.inputTextView.text = ""
+           
+           self.sendButton.isHidden = false
+           self.inputTextView.isEditable = true
+          // recordState = "stoped"
+           self.record.isSelected = false // Deselect the button
+           self.record.tintColor = UIColor.lightGray
+
+       }
+
+    @objc
+    func finishRecording2(success:Bool) {
+        
+        /*
+         .onSelected {
+         print("Item Tapped onSelected ")
+         $0.tintColor = .systemBlue
+         }
+         .onTouchUpInside { _ in
+         print("Item Tapped on TouchUpInside")
+         }
+         
+         
+         
+         .onDeselected {
+         $0.tintColor = UIColor.lightGray
+         }
+         */
+        print("recordControllerAction action")
+        /*
+        if gesture.state == .began {
+            self.record.isSelected = true
+            self.record.tintColor = .systemBlue
+            // Long press action when press and hold gesture starts
+            print("Button press and hold action")
+            self.sendButton.isHidden = true
+            self.inputTextView.isEditable = false
+            self.inputTextView.text = "Recording..."
+           // recordState = "record"
+            self.startRecording()
+        }
+        
+        else if gesture.state == .ended {
+         */
+            // Long press action when press and hold gesture ends
+            print("Button hold action - End")
+            self.inputTextView.text = ""
+            
+            self.sendButton.isHidden = false
+            self.inputTextView.isEditable = true
+           // recordState = "stoped"
+            self.record.isSelected = false // Deselect the button
+            self.record.tintColor = UIColor.lightGray
+          //  self.finishRecording(success: true)
+     //   }
+     
+    }
+   
+    
+  
+
+    
     /**
      The anchor contants used to add horizontal inset from the InputBarAccessoryView and the
      window. By default, an `inputAccessoryView` spans the entire width of the UIWindow. You
