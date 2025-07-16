@@ -171,22 +171,27 @@ open class InputBarAccessoryView: UIView {
                 $0.inputBarAccessoryView?.didSelectSendButton()
         }
     }()
-    // Inside your accessory view class
     open lazy var record: InputBarRecordButton = {
         let button = InputBarRecordButton()
         button.setSize(CGSize(width: 52, height: 36), animated: false)
         button.isEnabled = true
-     //   button.title = "Record"
-        button.image = UIImage(systemName:"mic.circle.fill")
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
-        button.onPressBegan = { [weak self] in
+        button.image = UIImage(systemName: "mic.circle")
+        button.tintColor = .label // Or any default you want
+
+        button.onPressBegan = { [weak button, weak self] in
+            button?.image = UIImage(systemName: "mic.circle.fill") // Optionally use another icon
+            button?.tintColor = .systemRed // Active color (or .systemBlue, your choice)
             self?.startRecording()
         }
-        button.onPressEnded = { [weak self] in
-            self?.finishRecording(success:true)
+        button.onPressEnded = { [weak button, weak self] in
+            button?.image = UIImage(systemName: "mic.circle")
+            button?.tintColor = .label // Inactive color
+            self?.finishRecording(success: true)
         }
         return button
     }()
+
+
 
     
     var recordingSession: AVAudioSession!
@@ -199,10 +204,13 @@ open class InputBarAccessoryView: UIView {
     func startRecording()
     
     {
-      
+      //  record.setImage(UIImage(systemName: "mic.circle"), for: .normal)
+
+        self.inputTextView.isEditable = false
+        self.inputTextView.text = "Recording..."
 
         sendButton.isHidden = true
-      //  recordButton.isHidden = false
+       record.isHidden = false
         recordingSession = AVAudioSession.sharedInstance()
 
        // self.view.addSubview(self.inputContainerView)
@@ -308,61 +316,14 @@ open class InputBarAccessoryView: UIView {
 
            self.inputTextView.text = ""
            
-           self.sendButton.isHidden = false
+          // self.sendButton.isHidden = false
            self.inputTextView.isEditable = true
           // recordState = "stoped"
-           self.record.isSelected = false // Deselect the button
-           self.record.tintColor = UIColor.lightGray
+           //self.record.isSelected = false // Deselect the button
+           //self.record.tintColor = UIColor.lightGray
 
        }
 
-    @objc
-    func finishRecording2(success:Bool) {
-        
-        /*
-         .onSelected {
-         print("Item Tapped onSelected ")
-         $0.tintColor = .systemBlue
-         }
-         .onTouchUpInside { _ in
-         print("Item Tapped on TouchUpInside")
-         }
-         
-         
-         
-         .onDeselected {
-         $0.tintColor = UIColor.lightGray
-         }
-         */
-        print("recordControllerAction action")
-        /*
-        if gesture.state == .began {
-            self.record.isSelected = true
-            self.record.tintColor = .systemBlue
-            // Long press action when press and hold gesture starts
-            print("Button press and hold action")
-            self.sendButton.isHidden = true
-            self.inputTextView.isEditable = false
-            self.inputTextView.text = "Recording..."
-           // recordState = "record"
-            self.startRecording()
-        }
-        
-        else if gesture.state == .ended {
-         */
-            // Long press action when press and hold gesture ends
-            print("Button hold action - End")
-            self.inputTextView.text = ""
-            
-            self.sendButton.isHidden = false
-            self.inputTextView.isEditable = true
-           // recordState = "stoped"
-            self.record.isSelected = false // Deselect the button
-            self.record.tintColor = UIColor.lightGray
-          //  self.finishRecording(success: true)
-     //   }
-     
-    }
    
     
   
