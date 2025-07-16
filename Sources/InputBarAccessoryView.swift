@@ -191,7 +191,29 @@ open class InputBarAccessoryView: UIView {
         return button
     }()
 
+  //  camera.onTouchUpInside { [weak self] _ in
+    //  self?.showImagePickerControllerActionSheet()
+  //  }
+ //     camera.addTarget(self, action: #selector( self.showImagePickerControllerActionSheet), for: .touchUpInside)
+    open lazy var camera: InputBarButtonItem = {
+        let button = InputBarRecordButton()
+        button.setSize(CGSize(width: 52, height: 36), animated: false)
+        button.isEnabled = true
+        button.image = UIImage(systemName: "paperclip")
+        button.tintColor = .label // Or any default you want
 
+        button.onPressBegan = { [weak button, weak self] in
+            button?.image = UIImage(systemName: "paperclip") // Optionally use another icon
+            button?.tintColor = .systemRed // Active color (or .systemBlue, your choice)
+          //  self?.startRecording()
+        }
+        button.onPressEnded = { [weak button, weak self] in
+            button?.image = UIImage(systemName: "paperclip")
+            button?.tintColor = .label // Inactive color
+          //  self?.finishRecording(success: true)
+        }
+        return button
+    }()
 
     
     var recordingSession: AVAudioSession!
