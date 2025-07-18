@@ -656,7 +656,7 @@ open class InputBarAccessoryView: UIView {
             bottom: middleContentViewWrapper.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: -middleContentViewPadding.bottom),
             left:   middleContentViewWrapper.leftAnchor.constraint(equalTo: leftStackView.rightAnchor, constant: middleContentViewPadding.left),
             right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -50),
-            width: middleContentViewWrapper.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -150)
+            width: middleContentViewWrapper.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -120)
 ,
             //right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: rightStackView.leftAnchor, constant: -middleContentViewPadding.right)
         )
