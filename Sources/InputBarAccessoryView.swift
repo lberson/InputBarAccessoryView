@@ -165,7 +165,11 @@ open class InputBarAccessoryView: UIView {
             .configure {
                 $0.setSize(CGSize(width: 52, height: 36), animated: false)
                 $0.isEnabled = false
+                $0.image =  #imageLiteral(resourceName: "ic_up")
                 $0.title = "Send"
+                $0.imageView?.layer.cornerRadius = 16
+                $0.imageView?.backgroundColor = UIColor(white: 0.85, alpha: 1)
+                $0.contentEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
                 $0.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
             }.onTouchUpInside {
                 $0.inputBarAccessoryView?.didSelectSendButton()
@@ -177,6 +181,7 @@ open class InputBarAccessoryView: UIView {
         button.isEnabled = true
         button.image = UIImage(systemName: "mic.circle")
         button.tintColor = .label // Or any default you want
+        button.contentEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
 
         button.onPressBegan = { [weak button, weak self] in
             button?.image = UIImage(systemName: "mic.circle.fill") // Optionally use another icon
