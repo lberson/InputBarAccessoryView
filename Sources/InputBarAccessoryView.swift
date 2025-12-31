@@ -165,7 +165,8 @@ open class InputBarAccessoryView: UIView {
             .configure {
                 $0.setSize(CGSize(width: 52, height: 36), animated: false)
                 $0.isEnabled = false
-                $0.image =  #imageLiteral(resourceName: "ic_up")
+              
+                $0.image =     UIImage(imageLiteralResourceName: "ic_up") 
                 $0.title = "Send"
                 $0.imageView?.layer.cornerRadius = 16
                 $0.imageView?.backgroundColor = UIColor(white: 0.85, alpha: 1)
@@ -497,7 +498,7 @@ open class InputBarAccessoryView: UIView {
 
     /// The fixed widthAnchor constant of the rightStackView
     /// The default value is `52`
-    public private(set) var rightStackViewWidthConstant: CGFloat = 52 {
+    public private(set) var rightStackViewWidthConstant: CGFloat = 0 {
         didSet {
             rightStackViewLayoutSet?.width?.constant = rightStackViewWidthConstant
         }
@@ -657,13 +658,14 @@ open class InputBarAccessoryView: UIView {
 
         // Constraints Within the contentView
         middleContentViewLayoutSet = NSLayoutConstraintSet(
-            top:    middleContentViewWrapper.topAnchor.constraint(equalTo: contentView.topAnchor, constant: middleContentViewPadding.top + 20),
-            bottom: middleContentViewWrapper.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: -middleContentViewPadding.bottom),
-            left:   middleContentViewWrapper.leftAnchor.constraint(equalTo: leftStackView.rightAnchor, constant: middleContentViewPadding.left),
-            right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -50),
-            width: middleContentViewWrapper.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -120)
-,
-            //right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: rightStackView.leftAnchor, constant: -middleContentViewPadding.right)
+            top:    middleContentViewWrapper.topAnchor.constraint(equalTo: contentView.topAnchor,
+                                                                  constant: middleContentViewPadding.top), // ✅ no +20
+            bottom: middleContentViewWrapper.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor,
+                                                                     constant: -middleContentViewPadding.bottom - 5),
+            left:   middleContentViewWrapper.leftAnchor.constraint(equalTo: leftStackView.rightAnchor,
+                                                                   constant: middleContentViewPadding.left ),
+            right:  middleContentViewWrapper.rightAnchor.constraint(equalTo: rightStackView.leftAnchor,
+                                                                    constant: -middleContentViewPadding.right)
         )
 
         inputTextView.fillSuperview()
@@ -676,7 +678,7 @@ open class InputBarAccessoryView: UIView {
             left:   leftStackView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 0),
             width:  leftStackView.widthAnchor.constraint(equalToConstant: leftStackViewWidthConstant)
         )
-
+       // setLeftStackViewWidthConstant(to: 22, animated: false)
         rightStackViewLayoutSet = NSLayoutConstraintSet(
             top:    rightStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
             bottom: rightStackView.bottomAnchor.constraint(equalTo: middleContentViewWrapper.bottomAnchor, constant: 0),
@@ -690,6 +692,10 @@ open class InputBarAccessoryView: UIView {
             left:   bottomStackView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 0),
             right:  bottomStackView.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: 0)
         )
+        
+        
+      setLeftStackViewWidthConstant(to: 60, animated: true)
+        setRightStackViewWidthConstant(to: 40, animated: true)
     }
 
     /// Respect window safeAreaInsets
@@ -1132,3 +1138,4 @@ open class InputBarAccessoryView: UIView {
         delegate?.inputBar(self, didPressSendButtonWith: inputTextView.text)
     }
 }
+
