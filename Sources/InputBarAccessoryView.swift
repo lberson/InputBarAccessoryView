@@ -27,6 +27,7 @@
 
 import UIKit
 import MobileCoreServices
+import AVFoundation
 import AVKit
 /// A powerful InputAccessoryView ideal for messaging applications
 open class InputBarAccessoryView: UIView {
@@ -229,128 +230,110 @@ open class InputBarAccessoryView: UIView {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0]
     }
-    func startRecording()
-    
-    {
-      //  record.setImage(UIImage(systemName: "mic.circle"), for: .normal)
 
+    private func resetInputBarAfterRecordAttempt() {
+        inputAccessoryView?.isHidden = false
+        inputTextView.text = ""
+        inputTextView.isEditable = true
+    }
+
+    private func beginAudioCapture() {
+        let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+        if FileManager.default.fileExists(atPath: audioFilename.path) {
+            try? FileManager.default.removeItem(at: audioFilename)
+        }
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            try session.setActive(true)
+            let settings: [String: Any] = [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 44_100,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+            ]
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder.isMeteringEnabled = true
+            audioRecorder.prepareToRecord()
+            guard audioRecorder.record() else {
+                recordState = "stoped"
+                resetInputBarAfterRecordAttempt()
+                return
+            }
+            recordState = "record"
+        } catch {
+            recordState = "stoped"
+            audioRecorder = nil
+            resetInputBarAfterRecordAttempt()
+            print("Error: record \(error.localizedDescription)")
+        }
+    }
+
+    func startRecording() {
         self.inputTextView.isEditable = false
         self.inputTextView.text = "Recording..."
-
         sendButton.isHidden = true
-       record.isHidden = false
-        recordingSession = AVAudioSession.sharedInstance()
+        record.isHidden = false
 
-       // self.view.addSubview(self.inputContainerView)
-        
-        
-         
-       
-        do {
-            try recordingSession.setCategory(.playAndRecord, mode: .default)
-            try recordingSession.setActive(true)
-            recordingSession.requestRecordPermission() { [unowned self] allowed in
+        let session = AVAudioSession.sharedInstance()
+        switch session.recordPermission {
+        case .granted:
+            beginAudioCapture()
+        case .denied:
+            recordState = "stoped"
+            resetInputBarAfterRecordAttempt()
+            print("Error: record 2 — microphone permission denied")
+        case .undetermined:
+            session.requestRecordPermission { [weak self] allowed in
                 DispatchQueue.main.async {
+                    guard let self else { return }
                     if allowed {
-                        //self.inputContainerView.recordButton.isHidden = false
+                        self.beginAudioCapture()
                     } else {
-                        // failed to record!
+                        self.recordState = "stoped"
+                        self.resetInputBarAfterRecordAttempt()
+                        print("Error: record 2 — microphone permission denied")
                     }
                 }
             }
-        } catch {
-            // failed to record!
-        }
-        let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
-        do {
-            try recordingSession.setCategory(.playAndRecord, mode: .default)
-            try recordingSession.setActive(true)
-            recordingSession.requestRecordPermission() { [unowned self] allowed in
-                DispatchQueue.main.async { [self] in
-                    if allowed {
-                        //self.inputContainerView.recordButton.isHidden = false
-                  //      if isAudioRecordingGranted
-                 //       {
-                            let session = AVAudioSession.sharedInstance()
-                            do
-                            {
-                               // try session.setCategory(.playAndRecord, mode: .default)
-                                try! session.setCategory(AVAudioSession.Category.playAndRecord, options:AVAudioSession.CategoryOptions.defaultToSpeaker)
-                                try session.setActive(true)
-                                let settings = [
-                                    AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                                    AVSampleRateKey: 44100,
-                                    AVNumberOfChannelsKey: 2,
-                                    AVEncoderAudioQualityKey:AVAudioQuality.high.rawValue
-                                ]
-                                self.audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-                           //     audioRecorder.delegate = self
-                                audioRecorder.isMeteringEnabled = true
-                                //audioRecorder.
-                                
-
-                                audioRecorder.prepareToRecord()
-                                audioRecorder.record()
-                                recordState = "record"
-                            }
-                            catch let error {
-                                recordState = "stopped"
-                                print("Error: record")
-                              //  print(msg_title: "Error", msg_desc: error.localizedDescription, action_title: "OK")
-                            }
-                        }
-                        else
-                        {
-                            recordState = "stopped"
-                            print("Error: record 2")
-                           // print(msg_title: "Error", msg_desc: "Don't have access to use your microphone.", action_title: "OK")
-                        }
-
-              //      } else {
-                        // failed to record!
-                //    }
-             }
-            }
-        } catch {
-            // failed to record!
-            finishRecording(success: false)
+        @unknown default:
+            recordState = "stoped"
+            resetInputBarAfterRecordAttempt()
         }
     }
+
     @objc
-       func finishRecording(success: Bool) {
-           if(recordState == "record"){
-               audioRecorder.stop()
-               recordState = "stopped"
-               let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
-               if let audioURL = audioFilename as? NSURL {
-                   inputPlugins.forEach { _ = $0.handleInput(of: audioURL ) }
-                   audioRecorder = nil
-             
-                  //  if success {
-                        //self.groupsViewModel.item.id
-                    //   sendMessage(srcUrl: audioFilename)
-                   // recordButton.isHidden = true
-                  //  sendButton.isHidden = false
-                  //  self.refreshView()
-                 //   } else {
-                   //     inputContainerView.recordButton.setTitle("Rec", for: .normal)
-                        // recording failed :(
-                //    }
-                  // getRootViewController()?.dismiss(animated: true, completion: nil)
-                
-               }
-           }
-           inputAccessoryView?.isHidden = false
+    func finishRecording(success: Bool) {
+        defer { resetInputBarAfterRecordAttempt() }
 
-           self.inputTextView.text = ""
-           
-          // self.sendButton.isHidden = false
-           self.inputTextView.isEditable = true
-          // recordState = "stoped"
-           //self.record.isSelected = false // Deselect the button
-           //self.record.tintColor = UIColor.lightGray
+        guard recordState == "record" else { return }
+        audioRecorder?.stop()
+        recordState = "stoped"
+        audioRecorder = nil
 
-       }
+        guard success else { return }
+
+        let audioFilename = getDocumentsDirectory().appendingPathComponent("recording.m4a")
+        guard FileManager.default.fileExists(atPath: audioFilename.path) else { return }
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: audioFilename.path)[.size] as? NSNumber)?.intValue ?? 0
+        guard fileSize > 500 else { return }
+
+        // Unique file per take — shared `recording.m4a` + cache-by-filename made playback reuse old audio.
+        let uniqueURL = getDocumentsDirectory().appendingPathComponent("recording-\(UUID().uuidString).m4a")
+        do {
+            if FileManager.default.fileExists(atPath: uniqueURL.path) {
+                try FileManager.default.removeItem(at: uniqueURL)
+            }
+            try FileManager.default.copyItem(at: audioFilename, to: uniqueURL)
+        } catch {
+            print("Error: copy recording \(error.localizedDescription)")
+            return
+        }
+
+        // Attachment plugins auto-submit on insert, so no explicit send here.
+        let fileObject = uniqueURL as NSURL
+        inputPlugins.forEach { _ = $0.handleInput(of: fileObject) }
+    }
 
    
     

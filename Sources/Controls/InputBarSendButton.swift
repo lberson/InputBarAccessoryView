@@ -143,6 +143,11 @@ open class InputBarRecordButton: InputBarButtonItem {
            super.touchesEnded(touches, with: event)
            onPressEnded?()
        }
+
+    open override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+           super.touchesCancelled(touches, with: event)
+           onPressEnded?()
+       }
     /// A flag indicating the animation state of the `InputBarSendButton`
     open private(set) var isAnimating: Bool = false
 
