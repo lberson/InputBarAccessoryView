@@ -133,6 +133,47 @@ import UIKit
 open class InputBarRecordButton: InputBarButtonItem {
     var onPressBegan: (() -> Void)?
        var onPressEnded: (() -> Void)?
+
+    /// The round mic button, WhatsApp style. The circle is drawn into the image rather than set as
+    /// a button background so it stays perfectly round however the stack view sizes the button.
+    open var fillColor: UIColor = .systemGreen {
+        didSet { applyIdleAppearance() }
+    }
+
+    open var glyphColor: UIColor = .white {
+        didSet { applyIdleAppearance() }
+    }
+
+    open var recordingFillColor: UIColor = .systemRed
+
+    open var circleDiameter: CGFloat = 38 {
+        didSet { applyIdleAppearance() }
+    }
+
+    open func applyIdleAppearance() {
+        image = roundMicImage(fill: fillColor, glyph: glyphColor)
+    }
+
+    open func applyRecordingAppearance() {
+        image = roundMicImage(fill: recordingFillColor, glyph: .white)
+    }
+
+    private func roundMicImage(fill: UIColor, glyph: UIColor) -> UIImage {
+        let size = CGSize(width: circleDiameter, height: circleDiameter)
+        let glyphConfig = UIImage.SymbolConfiguration(pointSize: circleDiameter / 2, weight: .medium)
+        let mic = UIImage(systemName: "mic.fill", withConfiguration: glyphConfig)?
+            .withTintColor(glyph, renderingMode: .alwaysOriginal)
+
+        return UIGraphicsImageRenderer(size: size).image { context in
+            fill.setFill()
+            context.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
+            guard let mic else { return }
+            mic.draw(at: CGPoint(
+                x: (size.width - mic.size.width) / 2,
+                y: (size.height - mic.size.height) / 2
+            ))
+        }.withRenderingMode(.alwaysOriginal)
+    }
    
     open override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
            super.touchesBegan(touches, with: event)

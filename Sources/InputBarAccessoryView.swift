@@ -179,20 +179,17 @@ open class InputBarAccessoryView: UIView {
     }()
     open lazy var record: InputBarRecordButton = {
         let button = InputBarRecordButton()
-        button.setSize(CGSize(width: 52, height: 36), animated: false)
+        button.setSize(CGSize(width: 44, height: 40), animated: false)
         button.isEnabled = true
-        button.image = UIImage(systemName: "mic.circle")
-        button.tintColor = .label // Or any default you want
         button.contentEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
+        button.applyIdleAppearance()
 
         button.onPressBegan = { [weak button, weak self] in
-            button?.image = UIImage(systemName: "mic.circle.fill") // Optionally use another icon
-            button?.tintColor = .systemRed // Active color (or .systemBlue, your choice)
+            button?.applyRecordingAppearance()
             self?.startRecording()
         }
         button.onPressEnded = { [weak button, weak self] in
-            button?.image = UIImage(systemName: "mic.circle")
-            button?.tintColor = .label // Inactive color
+            button?.applyIdleAppearance()
             self?.finishRecording(success: true)
         }
         return button
@@ -677,8 +674,8 @@ open class InputBarAccessoryView: UIView {
         )
         
         
-      setLeftStackViewWidthConstant(to: 60, animated: true)
-        setRightStackViewWidthConstant(to: 40, animated: true)
+      setLeftStackViewWidthConstant(to: 60, animated: false)
+        setRightStackViewWidthConstant(to: 40, animated: false)
     }
 
     /// Respect window safeAreaInsets
