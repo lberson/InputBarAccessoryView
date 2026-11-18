@@ -26,7 +26,7 @@
 //
 
 import UIKit
-import MobileCoreServices
+//import MobileCoreServices
 import AVFoundation
 import AVKit
 /// A powerful InputAccessoryView ideal for messaging applications
